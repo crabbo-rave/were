@@ -1,0 +1,5 @@
+﻿F# gives you simplicity and succinctness like Python with correctness, robustness and performance beyond C# or Java.
+
+F# is open source, cross-platform and free to use with professional tooling.
+
+F# is a JavaScript and .NET language for web, cloud, data-science, apps and more.
