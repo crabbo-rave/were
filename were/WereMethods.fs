@@ -33,24 +33,21 @@ let parseArgs args =
 
 let exeuteActions (results: ParseResults<Arguments>) =
     let data = File.ReadAllText (results.GetResult FileName)
+
     let determineAction =
-        if (containsMoreThan results [Delete; Count; Replace] 2) then
+        if containsMoreThan results [Delete; Count; Replace] 2 then
             failwith "Cannot use --delete, --count, or --replace together. Choose one."
         elif noneOfElements results [Delete; Count; Replace] then   
             failwith "At most one of --delete, --count, or --replace is mandatory"
         else    
             findItem
-        //match results with
-        //| Delete when results.Contains Delete -> Delete
-        //| Count when result.Contains Count -> Count
-        //| Replace when results.Contains Replace -> Replace
 
     let rgxExpr = Regex (results.GetResult Expr)
 
     let writeToFile (path: string) (data: string) =
         use FileStream fs = File.Create(path) 
         let info = UTF8Encoding(true).GetBytes(data)
-        fs.Write(info, 0, info.Length)
+        fs.WriteAllBytes(info, 0, info.Length)
 
     let actionReturn =
         ()
