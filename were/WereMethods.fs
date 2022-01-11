@@ -43,13 +43,13 @@ let exeuteActions (results: ParseResults<Arguments>) =
             | :? IOException -> failwith "Error writing to file"
     
     let determineAction =
-        if containsMoreThan results [Delete ""; Count ""; Replace ("", "")] 2 then
+        let listOfElements = [Delete (results.GetResult Delete); Count (results.GetResult Count); Replace (results.GetResult Replace)]
+        if containsMoreThan results listOfElements 2 then
             failwith "Cannot use --delete, --count, or --replace together. Choose one."
-        elif noneOfElements results [Delete ""; Count ""; Replace ("", "")] then   
+        elif noneOfElements results listOfElements then   
             failwith "At most one of --delete, --count, or --replace is mandatory"
         else    
-            //findItem
-            Delete
+            findItem results listOfElements
 
     let rgxExpr = Regex (results.GetResult (determineAction))
     

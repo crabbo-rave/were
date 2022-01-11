@@ -17,6 +17,9 @@ let rec findItem (containingList: ParseResults<_>) listOfElements =
     | [] -> failwith "Unexpected Error"
     | x::xs ->
         if containingList.Contains x then
-            x
+            match x with 
+            | Delete _ -> Delete
+            | Count _ -> Count 
+            | Replace _ -> Replace
         else
-            findItem containingList xs
+            findItem containingList xs 
