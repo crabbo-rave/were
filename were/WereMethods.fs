@@ -34,13 +34,7 @@ let parseArgs args =
 let exeuteActions (results: ParseResults<Arguments>) =
     let data = File.ReadAllText (results.GetResult FileName)
 
-    let writeToFile (path: string) (data: string) =
-        try 
-            use FileStream fs = File.Create(path) 
-            let info = UTF8Encoding(true).GetBytes(data)
-            fs.WriteAllBytes(info, 0, info.Length)
-        with 
-            | :? IOException -> failwith "Error writing to file"
+    let writeToFile path data = File.WriteAllText (path, data)
     
     let determineAction =
         let listOfElements = [Delete (results.GetResult Delete); Count (results.GetResult Count); Replace (results.GetResult Replace)]
@@ -58,23 +52,24 @@ let exeuteActions (results: ParseResults<Arguments>) =
         | Replace (x, y) -> Regex x
     
     let doAction (action: Arguments) (input: string) (expr: Regex) =
+        let write data = writeToFile (results.GetResult Path) data
         match action with
         | Count x ->
-            expr.Matches(input).Count
+            (expr.Matches(input).Count, ())
         | Delete x ->
-            writeToFile (results.GetResult Path) (expr.Replace(input, ""))
+            (0, (write (expr.Replace(input, ""))))
         | Replace (x, y) ->
-            writeToFile (results.GetResult Path) (expr.Replace(input, y))
+            (0, (write (expr.Replace(input, y))))
             
     let actionReturn (action: Arguments) (expr: Regex) =
         match action with
         | Count x ->
-            $"{doAction (Count x) data expr} occurences of the expression {x}"
+            $"{fst (doAction (Count x) data expr)} occurences of the expression {x}"
         | Delete x ->
-            doAction (Delete x) data expr
+            snd (doAction (Delete x) data expr)
             $"Succesfully wrote to file {results.GetResult Path}"
         | Replace (x,y) ->
-            doAction (Replace (x,y)) data expr
+            snd (doAction (Replace (x,y)) data expr)
             $"Succesfully wrote to file {results.GetResult Path}"
 
     actionReturn
