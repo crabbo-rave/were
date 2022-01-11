@@ -51,26 +51,30 @@ let exeuteActions (results: ParseResults<Arguments>) =
         else    
             findItem results listOfElements
 
-    let rgxExpr = Regex (results.GetResult (determineAction))
+    let rgxExpr = 
+        match determineAction with
+        | Delete x -> Regex x
+        | Count x -> Regex x
+        | Replace (x, y) -> Regex x
     
     let doAction (action: Arguments) (input: string) (expr: Regex) =
         match action with
-        | Count ->
+        | Count x ->
             expr.Matches(input).Count
-        | Delete ->
+        | Delete x ->
             writeToFile (results.GetResult Path) (expr.Replace(input, ""))
-        | Replace ->
-            writeToFile (results.GetResult Path) (expr.Replace(input, ((results.GetResult Replace).snd)))
+        | Replace (x, y) ->
+            writeToFile (results.GetResult Path) (expr.Replace(input, y))
             
     let actionReturn (action: Arguments) (expr: Regex) =
         match action with
-        | Count ->
-            $"{doAction Count data expr} occurences of the expression {results.GetResult expr}"
-        | Delete ->
-            doAction Delete data expr
+        | Count x ->
+            $"{doAction (Count x) data expr} occurences of the expression {x}"
+        | Delete x ->
+            doAction (Delete x) data expr
             $"Succesfully wrote to file {results.GetResult Path}"
-        | Replace ->
-            doAction Replace data expr
+        | Replace (x,y) ->
+            doAction (Replace (x,y)) data expr
             $"Succesfully wrote to file {results.GetResult Path}"
 
     actionReturn
