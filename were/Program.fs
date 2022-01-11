@@ -1,7 +1,9 @@
 ﻿open System
 open WereMethods
+open HelperMethods
 
 [<EntryPoint>]
 let main args =
-    printfn "%A" usage
+    let results = parser.Parse [| "fsharp.txt"; |]
+    printfn "%A" (noneOfElements results [Delete ""; Count ""; Replace ("", "")])
     0
