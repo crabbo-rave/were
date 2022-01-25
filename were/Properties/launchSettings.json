@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "were": {
+      "commandName": "Project",
+      "commandLineArgs": "--filename \"C:\\Users\\Joseph\\Desktop\\Programming Languages\\F#\\repos\\were\\were\\fsharp.txt\" --count \"F#\""
+    }
+  }
+}

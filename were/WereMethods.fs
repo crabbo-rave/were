@@ -23,6 +23,45 @@ type Arguments =
             | Replace _ -> "specify an expression and a replacement"
             | Path _ -> "specify a working directory to place the output file"
 
+module HelperMethods =
+    let boolToInt = function true -> 1 | false -> 0
+    let containsMoreThan (containingList: ParseResults<_>) listOfElements sumOfContaining =
+        listOfElements
+        |> List.sumBy (function 
+                        | Delete _ -> boolToInt (containingList.Contains Delete) 
+                        | Count _ -> boolToInt (containingList.Contains Count)
+                        | Replace (_, _) -> boolToInt (containingList.Contains Replace) )
+        |> (<=) sumOfContaining
+    
+    let noneOfElements (containingList: ParseResults<_>) listOfElements =
+        listOfElements
+        |> List.sumBy (function 
+                        | Delete _ -> boolToInt (containingList.Contains Delete) 
+                        | Count _ -> boolToInt (containingList.Contains Count)
+                        | Replace (_, _) -> boolToInt (containingList.Contains Replace) )
+        |> (=) 0
+
+    let rec findItem (containingList: ParseResults<_>) listOfElements =
+        match listOfElements with
+        | [] -> failwith "Unexpected Error"
+        | x::xs -> match x with
+                    | Delete x -> if containingList.Contains Delete then 
+                                        Delete x 
+                                  else 
+                                        findItem containingList xs 
+                    | Count x -> if containingList.Contains Count then 
+                                        Count x 
+                                 else 
+                                        findItem containingList xs 
+                    | Replace (x, y) -> if containingList.Contains Replace then 
+                                            Replace (x, y)
+                                        else
+                                            findItem containingList xs
+            
+            
+
+open HelperMethods
+
 let parser = ArgumentParser.Create<Arguments>(programName = "were.exe")
 
 let usage = parser.PrintUsage()
@@ -37,7 +76,7 @@ let exeuteActions (results: ParseResults<Arguments>) =
     let writeToFile path data = File.WriteAllText (path, data)
     
     let determineAction =
-        let listOfElements = [Delete (results.GetResult Delete); Count (results.GetResult Count); Replace (results.GetResult Replace)]
+        let listOfElements = [Delete ""; Count ""; Replace ("","")]
         if containsMoreThan results listOfElements 2 then
             failwith "Cannot use --delete, --count, or --replace together. Choose one."
         elif noneOfElements results listOfElements then   
