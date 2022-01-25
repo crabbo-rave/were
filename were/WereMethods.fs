@@ -89,8 +89,6 @@ let exeuteActions (results: ParseResults<Arguments>) =
         | Delete x -> Regex x
         | Count x -> Regex x
         | Replace (x, y) -> Regex x
-
-    printfn "%A" rgxExpr
     
     let doAction (action: Arguments) (input: string) (expr: Regex) =
         let write data = writeToFile (results.GetResult Path) data
