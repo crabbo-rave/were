@@ -18,7 +18,7 @@ type Arguments =
             | Count _ -> "specify an expression"
             | Delete _ -> "specify an expression"
             | Replace _ -> "specify an expression and a replacement"
-            | Path _ -> "specify a working directory to place the output file"
+            | Path _ -> "specify an existing or non-existing file to place the output (only needed for Delete and Replace commands)"
 
 module HelperMethods =
     let boolToInt = function true -> 1 | false -> 0
