@@ -6,9 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="HelperMethods.fs" />
-    <Content Include="fsharp.txt" />
     <Compile Include="WereMethods.fs" />
+    <Content Include="fsharp.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

@@ -1,11 +1,8 @@
 ﻿module WereMethods
 
-open ANSIConsole
-open System
 open System.Text.RegularExpressions
 open System.IO
 open Argu
-open HelperMethods
 
 type Arguments =
     | [<Mandatory>] FileName of filname:string

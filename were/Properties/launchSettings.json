@@ -2,7 +2,7 @@
   "profiles": {
     "were": {
       "commandName": "Project",
-      "commandLineArgs": "--filename \"C:\\Users\\Joseph\\Desktop\\Programming Languages\\F#\\repos\\were\\were\\fsharp.txt\" --count \"F#\""
+      "commandLineArgs": "--filename \"C:\\Users\\Joseph\\Desktop\\Programming Languages\\F#\\repos\\were\\were\\fsharp.txt\" --replace \"Python\" \"F#\" --path \"fsharp-replace.txt\""
     }
   }
 }

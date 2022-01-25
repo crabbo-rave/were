@@ -1,4 +1,0 @@
-﻿module HelperMethods
-
-open Argu
-
