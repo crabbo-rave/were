@@ -46,15 +46,15 @@ module HelperMethods =
         | [] -> failwith "Unexpected Error"
         | x::xs -> match x with
                     | Delete x -> if containingList.Contains Delete then 
-                                        Delete x 
+                                        Delete (containingList.GetResult Delete) 
                                   else 
                                         findItem containingList xs 
                     | Count x -> if containingList.Contains Count then 
-                                        Count x 
+                                        Count (containingList.GetResult Count) 
                                  else 
                                         findItem containingList xs 
                     | Replace (x, y) -> if containingList.Contains Replace then 
-                                            Replace (x, y)
+                                            Replace (containingList.GetResult Replace)
                                         else
                                             findItem containingList xs
             
@@ -89,6 +89,8 @@ let exeuteActions (results: ParseResults<Arguments>) =
         | Delete x -> Regex x
         | Count x -> Regex x
         | Replace (x, y) -> Regex x
+
+    printfn "%A" rgxExpr
     
     let doAction (action: Arguments) (input: string) (expr: Regex) =
         let write data = writeToFile (results.GetResult Path) data
@@ -111,4 +113,4 @@ let exeuteActions (results: ParseResults<Arguments>) =
             snd (doAction (Replace (x,y)) data expr)
             $"Succesfully wrote to file {results.GetResult Path}"
 
-    actionReturn
+    actionReturn determineAction rgxExpr

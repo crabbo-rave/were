@@ -5,5 +5,5 @@ open HelperMethods
 [<EntryPoint>]
 let main args =
     let results = parser.Parse args
-    printfn "%A" (exeuteActions results)
+    printfn "%s" (exeuteActions results)
     0
