@@ -6,10 +6,10 @@ open Argu
 
 type Arguments =
     | [<Mandatory>] FileName of filname:string
-    | Count of expr:string
-    | Delete of expr:string
-    | Replace of expr:string * replacement:string
-    | Path of path:string
+    | [<Unique>] Count of expr:string
+    | [<Unique>] Delete of expr:string
+    | [<Unique>] Replace of expr:string * replacement:string
+    | [<Unique>] Path of path:string
 
     interface IArgParserTemplate with
         member s.Usage = 
@@ -28,15 +28,7 @@ module HelperMethods =
                         | Delete _ -> boolToInt (containingList.Contains Delete) 
                         | Count _ -> boolToInt (containingList.Contains Count)
                         | Replace (_, _) -> boolToInt (containingList.Contains Replace) )
-        |> (<=) sumOfContaining
-    
-    let noneOfElements (containingList: ParseResults<_>) listOfElements =
-        listOfElements
-        |> List.sumBy (function 
-                        | Delete _ -> boolToInt (containingList.Contains Delete) 
-                        | Count _ -> boolToInt (containingList.Contains Count)
-                        | Replace (_, _) -> boolToInt (containingList.Contains Replace) )
-        |> (=) 0
+        |> fun x -> (( x <= sumOfContaining) || x = 0)
 
     let rec findItem (containingList: ParseResults<_>) listOfElements =
         match listOfElements with
@@ -67,17 +59,19 @@ let parseArgs args =
     let results = parser.Parse (args)
     results.GetAllResults()
 
-let exeuteActions (results: ParseResults<Arguments>) =
+let executeActions (results: ParseResults<Arguments>) =
     let data = File.ReadAllText (results.GetResult FileName)
 
-    let writeToFile path data = File.WriteAllText (path, data)
+    let writeToFile path data = 
+        try
+            File.WriteAllText (path, data)
+        with 
+            | :? IOException as e -> failwithf "IO Exception! %s" (e.Message)
     
     let determineAction =
         let listOfElements = [Delete ""; Count ""; Replace ("","")]
         if containsMoreThan results listOfElements 2 then
-            failwith "Cannot use --delete, --count, or --replace together. Choose one."
-        elif noneOfElements results listOfElements then   
-            failwith "At most one of --delete, --count, or --replace is mandatory"
+            failwith "There must be at least on of --delete, --count, or --replace, and no more of them together."
         else    
             findItem results listOfElements
 
