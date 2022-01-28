@@ -27,7 +27,8 @@ module HelperMethods =
         |> List.sumBy (function 
                         | Delete _ -> boolToInt (containingList.Contains Delete) 
                         | Count _ -> boolToInt (containingList.Contains Count)
-                        | Replace (_, _) -> boolToInt (containingList.Contains Replace) )
+                        | Replace (_, _) -> boolToInt (containingList.Contains Replace)
+                        | _ -> failwith "Error: Unknown action")
         |> fun x -> (( x <= sumOfContaining) || x = 0)
 
     let rec findItem (containingList: ParseResults<_>) listOfElements =
@@ -46,6 +47,7 @@ module HelperMethods =
                                             Replace (containingList.GetResult Replace)
                                         else
                                             findItem containingList xs
+                    | _ -> failwith "Error: Unknown action"
             
             
 
@@ -80,6 +82,7 @@ let executeActions (results: ParseResults<Arguments>) =
         | Delete x -> Regex x
         | Count x -> Regex x
         | Replace (x, y) -> Regex x
+        | _ -> failwith "Error: Unknown action"
     
     let doAction (action: Arguments) (input: string) (expr: Regex) =
         let write data = writeToFile (results.GetResult Path) data
@@ -90,6 +93,7 @@ let executeActions (results: ParseResults<Arguments>) =
             (0, (write (expr.Replace(input, ""))))
         | Replace (x, y) ->
             (0, (write (expr.Replace(input, y))))
+        | _ -> failwith "Error: Unknown action"
             
     let actionReturn (action: Arguments) (expr: Regex) =
         match action with
@@ -101,5 +105,6 @@ let executeActions (results: ParseResults<Arguments>) =
         | Replace (x,y) ->
             snd (doAction (Replace (x,y)) data expr)
             $"Succesfully wrote to file {results.GetResult Path}"
+        | _ -> failwith "Error: Unknown action"
 
     actionReturn determineAction rgxExpr
