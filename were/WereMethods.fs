@@ -48,9 +48,20 @@ module HelperMethods =
                                         else
                                             findItem containingList xs
                     | _ -> failwith "Error: Unknown action"
+    let filterFunc =
+        function
+        | Delete _ -> true
+        | Count _ -> true
+        | Replace (_, _) -> true
+        | _ -> false
+    
+    let mapFunc =
+        function
+        | Delete x -> Regex x
+        | Count x -> Regex x
+        | Replace (x, y) -> Regex x
+        | _ -> failwith "Error: Unknown action"
             
-            
-
 open HelperMethods
 
 let parser = ArgumentParser.Create<Arguments>(programName = "were.exe")
@@ -70,41 +81,38 @@ let executeActions (results: ParseResults<Arguments>) =
         with 
             | :? IOException as e -> failwithf "IO Exception! %s" (e.Message)
     
-    let determineAction =
-        let listOfElements = [Delete ""; Count ""; Replace ("","")]
-        if containsMoreThan results listOfElements 2 then
-            failwith "There must be at least on of --delete, --count, or --replace, and no more of them together."
-        else    
-            findItem results listOfElements
+    let determineAction results =
+        results
+        |> List.filter filterFunc
 
-    let rgxExpr = 
-        match determineAction with
-        | Delete x -> Regex x
-        | Count x -> Regex x
-        | Replace (x, y) -> Regex x
-        | _ -> failwith "Error: Unknown action"
+    let zippedExprAndAction results = 
+        let rgxList = determineAction results
+                      |> List.map mapFunc
+        List.zip results rgxList
     
-    let doAction (action: Arguments) (input: string) (expr: Regex) =
+    let doAction (inputList: (Arguments * Regex) list) (input: string)=
         let write data = writeToFile (results.GetResult Path) data
-        match action with
-        | Count x ->
-            (expr.Matches(input).Count, ())
-        | Delete x ->
-            (0, (write (expr.Replace(input, ""))))
-        | Replace (x, y) ->
-            (0, (write (expr.Replace(input, y))))
-        | _ -> failwith "Error: Unknown action"
+        inputList 
+        |> List.iter (function 
+                        //| (Count _, expr) ->
+                        //    (expr.Matches(input).Count, ())
+                        | (Delete _, expr) ->
+                            (0, (write (expr.Replace(input, ""))))
+                        | (Replace (_, y), expr) ->
+                            (0, (write (expr.Replace(input, y))))
+                        | _ -> failwith "Error: Unknown action")
             
-    let actionReturn (action: Arguments) (expr: Regex) =
-        match action with
-        | Count x ->
-            $"{fst (doAction (Count x) data expr)} occurences of the expression {x}"
-        | Delete x ->
-            snd (doAction (Delete x) data expr)
-            $"Succesfully wrote to file {results.GetResult Path}"
-        | Replace (x,y) ->
-            snd (doAction (Replace (x,y)) data expr)
-            $"Succesfully wrote to file {results.GetResult Path}"
-        | _ -> failwith "Error: Unknown action"
+    let actionReturn (inputList: (Arguments * Regex) list) (data: string) =
+        inputList
+        |> List.iter (function
+                        | (Count _, expr) ->
+                            $"{fst (doAction inputList data)} occurences of the expression {x}"
+                        | (Delete x, expr) ->
+                            snd (doAction (Delete x) data)
+                            $"Succesfully wrote to file {results.GetResult Path}"
+                        | (Replace (x,y), expr) ->
+                            snd (doAction (Replace (x,y)) data)
+                            $"Succesfully wrote to file {results.GetResult Path}"
+                        | _ -> "")
 
-    actionReturn determineAction rgxExpr
+    actionReturn (zippedExprAndAction results) data
