@@ -2,6 +2,7 @@
 
 open System.Text.RegularExpressions
 open System.IO
+open System
 open Argu
 
 type Arguments =
@@ -90,12 +91,12 @@ let executeActions (results: ParseResults<Arguments>) =
                       |> List.map mapFunc
         List.zip results rgxList
     
-    let doAction (inputList: (Arguments * Regex) list) (input: string)=
+    let doAction (input: string) (inputList: (Arguments * Regex) list)  : (int * unit) list =
         let write data = writeToFile (results.GetResult Path) data
         inputList 
-        |> List.iter (function 
-                        //| (Count _, expr) ->
-                        //    (expr.Matches(input).Count, ())
+        |> List.map (function 
+                        | (Count _, expr) ->
+                            (expr.Matches(input).Count, ())
                         | (Delete _, expr) ->
                             (0, (write (expr.Replace(input, ""))))
                         | (Replace (_, y), expr) ->
@@ -104,15 +105,13 @@ let executeActions (results: ParseResults<Arguments>) =
             
     let actionReturn (inputList: (Arguments * Regex) list) (data: string) =
         inputList
+        |> doAction data
         |> List.iter (function
-                        | (Count _, expr) ->
-                            $"{fst (doAction inputList data)} occurences of the expression {x}"
-                        | (Delete x, expr) ->
-                            snd (doAction (Delete x) data)
-                            $"Succesfully wrote to file {results.GetResult Path}"
-                        | (Replace (x,y), expr) ->
-                            snd (doAction (Replace (x,y)) data)
-                            $"Succesfully wrote to file {results.GetResult Path}"
-                        | _ -> "")
+                        | (num, expr) when num > 0 ->
+                            Console.WriteLine $"{num} occurences of the expression {expr}"
+                        | (_, action) ->
+                            action
+                            Console.WriteLine $"Succesfully wrote to file {results.GetResult Path}"
+                        | _ -> Console.WriteLine() )
 
-    actionReturn (zippedExprAndAction results) data
+    actionReturn (zippedExprAndAction (results.GetAllResults())) data
